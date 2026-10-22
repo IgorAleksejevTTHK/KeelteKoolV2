@@ -134,8 +134,29 @@ namespace KeelteKoolV2.xUnitTesting
             Assert.Matches(dto.Tase, result2.Tase);
             Assert.Matches(dto.Nimetus, result2.Nimetus);
         }
+        //test peab kontrollima et andmete muutmisel õigesti andmed ka lisatakse
+        // 1 - Kirjeldatakse ära, kas test on tavaline (peaks/ei tohi teha), või negatiivne (ei tohi/peaks tegema)
+        // 2 - Mida parasjagu testiga testitakse.
+        // 3 - Mis tingimustel tulemust kontrollitakse, peale tegevust
+        //                  1           2           3
+        //                  \/          \/          \/
+        [Fact]
+        public async Task Should_DeleteDataFromDB_WhenValidIDIsGiven()
+        {
+            //ülesseade
+            Core.Domain.LanguageCourse createdCourse = await AddObjectToDB();
 
+            //tegevus
+            var deletedCourse = await Svc<ILanguageCoursesServices>().Delete(createdCourse.Id);
+            var result = await Svc<ILanguageCoursesServices>().DetailsAsync(createdCourse.Id);
 
+            //Kontroll
+            Assert.Null(result);
+            Assert.Equal(createdCourse, deletedCourse);
+            //Mõtle välja veel üks kontrollimisviis testile.
+            Assert.Equal(createdCourse.Id, deletedCourse.Id);
+            Assert.NotEqual(deletedCourse, result);
+        }
         private LanguageCourseDTO MockLanguageCourseDTOData()
         {
             return new LanguageCourseDTO
