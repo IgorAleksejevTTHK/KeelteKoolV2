@@ -15,9 +15,9 @@ namespace KeelteKoolV2.Core.DTO
         public string Qualifications { get; set; }
         public string UserID { get; set; }
         //public ICollection<LanguageSubject> LanguageSubjects { get; set; }
-        public List<IFormFile> Files { get; set; }
-        public IEnumerable<FileToDatabaseDTO> Image { get; set; } = new List<FileToDatabaseDTO>();
-        public DateTime CreatedAt { get; set; }
-        public DateTime ModifiedAt { get; set; }
+        public List<IFormFile>? Files { get; set; }
+        public IEnumerable<FileToDatabaseDTO>? Image { get; set; } = new List<FileToDatabaseDTO>();
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
     }
 }
