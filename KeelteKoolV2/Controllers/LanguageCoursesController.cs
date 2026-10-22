@@ -1,4 +1,5 @@
-﻿using KeelteKoolV2.Core.DTO;
+﻿using KeelteKoolV2.Core.Domain;
+using KeelteKoolV2.Core.DTO;
 using KeelteKoolV2.Core.ServiceInterface;
 using KeelteKoolV2.Data;
 using KeelteKoolV2.Models.LanguageCourses;
@@ -35,13 +36,13 @@ namespace KeelteKoolV2.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            LanguageCourseViewModel vm = new();
-            return View(vm);
+            LanguageCourseCreateUpdateViewModel vm = new();
+            return View("CreateUpdate", vm);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(LanguageCourseViewModel vm) 
+        public async Task<IActionResult> Create(LanguageCourseCreateUpdateViewModel vm)
         {
             //kontrollime et vm ei oleks null
             if (vm == null)
@@ -99,6 +100,52 @@ namespace KeelteKoolV2.Controllers
             vm.Tase = languageCourse.Tase;
 
             return View(vm);
+        }
+        [HttpGet]
+        public async Task<IActionResult> Update(Guid id)
+        {
+            if (id == Guid.Empty)
+            { return NotFound(); }
+            var courseToUpdate = await _languageCoursesServices.DetailsAsync(id);
+            if (courseToUpdate == null)
+            {
+                return NotFound();
+            }
+            var vm = new LanguageCourseCreateUpdateViewModel()
+            { };
+            vm.Id = courseToUpdate.Id;
+            vm.Kirjeldus = courseToUpdate.Kirjeldus;
+            vm.Nimetus = courseToUpdate.Nimetus;
+            vm.Keel = courseToUpdate.Keel;
+            vm.Tase = courseToUpdate.Tase;
+            vm.CreatedAt = courseToUpdate.CreatedAt;
+            vm.ModifiedAt = courseToUpdate.ModifiedAt;
+            return View("CreateUpdate", vm);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Update(LanguageCourseCreateUpdateViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("CreateUpdate", vm);
+            }
+            var dto = new LanguageCourseDTO()
+            {
+                Id = vm.Id,
+                Keel = vm.Keel,
+                Kirjeldus = vm.Kirjeldus,
+                Nimetus = vm.Nimetus,
+                Tase = vm.Tase,
+                CreatedAt = vm.CreatedAt,
+                ModifiedAt = vm.ModifiedAt
+            };
+            var result = await _languageCoursesServices.Update(dto);
+            var resultId = result.Id;
+            if (result == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return RedirectToAction(nameof(Update), new { id = resultId });
         }
     }
 }

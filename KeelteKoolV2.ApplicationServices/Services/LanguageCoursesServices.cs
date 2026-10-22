@@ -58,7 +58,19 @@ namespace KeelteKoolV2.ApplicationServices.Services
         }
         public async Task<LanguageCourse> Update(LanguageCourseDTO dto)
         {
-            return null;
+            LanguageCourse domain = new LanguageCourse();
+            domain.Id = (Guid)dto.Id;
+            domain.Kirjeldus = dto.Kirjeldus;
+            domain.Nimetus = dto.Nimetus;
+            domain.Keel = dto.Keel;
+            domain.ModifiedAt = DateTime.Now;
+            domain.CreatedAt = (DateTime)dto.CreatedAt;
+            domain.Tase = dto.Tase;
+            _context.ChangeTracker.Clear(); //<--- puhastab hetkel jälgitud konteksti
+            _context.LanguageCourses.Update(domain);
+            var result = await _context.SaveChangesAsync();
+
+            return domain;
         }
         public async Task<LanguageCourse> DetailsAsync(Guid id)
         {
