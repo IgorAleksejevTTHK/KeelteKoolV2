@@ -25,6 +25,7 @@ namespace KeelteKoolV2.Controllers
             var result = _context.LanguageCourses
                 .Select(x => new LanguageCourseViewModel
                 {
+                    Id = x.Id,
                     Nimetus = x.Nimetus,
                     Keel = x.Keel,
                 }).Take(20).OrderBy(x => x.Keel);
