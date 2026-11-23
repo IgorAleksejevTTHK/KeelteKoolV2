@@ -45,6 +45,8 @@ namespace KeelteKoolV2.ApplicationServices.Services
             }
             domain.Keel = dto.Keel;
             domain.Nimetus = dto.Nimetus;
+            domain.Kirjeldus = dto.Kirjeldus;
+            domain.Tase = dto.Tase;
             domain.CreatedAt = DateTime.Now;
             domain.ModifiedAt = DateTime.Now;
             //later, require user id to be attached to "ModifiedBy" parameter, to know who modified last.

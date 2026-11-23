@@ -53,6 +53,11 @@ namespace KeelteKoolV2.ApplicationServices.Services
             //otsime andmebaasist kustutatava õpetaja
             var result = await _context.Lecturers
                 .FirstOrDefaultAsync(x => x.Id == id);
+            //kui sellise id-ga õpetajat pole, siis pole midagi kustutada
+            if (result == null)
+            {
+                return null;
+            }
 
             _context.Lecturers.Remove(result);
             await _context.SaveChangesAsync();
@@ -69,13 +74,25 @@ namespace KeelteKoolV2.ApplicationServices.Services
 
         public async Task<Lecturer> Update(LecturerDTO dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
+            //kontrollime kas muudetav õpetaja on andmebaasis olemas
+            var existing = await _context.Lecturers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == dto.Id);
+            if (existing == null)
+            {
+                return null;
+            }
             Lecturer domain = new Lecturer();
             domain.Id = dto.Id;
             domain.FirstName = dto.FirstName;
             domain.LastName = dto.LastName;
             domain.Qualifications = dto.Qualifications;
             domain.UserID = dto.UserID;
-            domain.CreatedAt = (DateTime)dto.CreatedAt;
+            domain.CreatedAt = existing.CreatedAt; //loomise aeg võetakse andmebaasist, et see ei muutuks
             domain.ModifiedAt = DateTime.Now;
             _context.ChangeTracker.Clear(); //puhastab hetkel jälgitud konteksti
             _context.Lecturers.Update(domain);
