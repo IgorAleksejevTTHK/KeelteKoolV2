@@ -15,6 +15,72 @@ namespace KeelteKoolV2.SeleniumTesting
 
 
         /// <summary>
+        /// Test mis kontrollib et menüüst saab õpetajate lehele ja seal on tabel ning lisamise nupp
+        /// </summary>
+        [Fact]
+        [Order(1)]
+        public void Should_OpenLecturersPage_FromMenu_TableAndCreateButtonVisible()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+
+            /* tegevus */
+            //kogume andmed
+            string pageUrl = driver.Url;
+            bool isTableVisible = driver.FindElement(By.Id("IndexTable")).Displayed;
+            bool isCreateButtonVisible = driver.FindElement(By.Id("IndexCreateNewLecturer_BTN")).Displayed;
+            //sulgeme akna
+            Thread.Sleep(500);
+            driver.Quit();
+
+            /* kontroll */
+            Assert.Contains("Lecturers", pageUrl);
+            Assert.True(isTableVisible);
+            Assert.True(isCreateButtonVisible);
+        }
+
+
+        /// <summary>
+        /// Test mis täidab loomise vormi aga vajutab "Tagasi", uut õpetajat ei tohi tekkida
+        /// </summary>
+        [Fact]
+        [Order(2)]
+        public void Should_NotAddLecturer_WhenCreateFormIsLeftWithBackButton()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            int rowCountBefore = tableOfIndex.FindElements(By.TagName("tr")).Count;
+
+            /* tegevus */
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewLecturer_BTN"));
+            indexCreateButton.Click(); //vajutame lisamise nuppu
+            string notSavedName = DataEntry_Lecturer(driver); //täidame vormi
+            IWebElement cancelButton = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            cancelButton.Click(); //vajutame tagasi, ei salvesta
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            int rowCountAfter = rowsOfTable.Count;
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableLecturerFirstName")).Text == notSavedName)
+                {
+                    isObjectFound = true;
+                }
+            }
+            driver.Quit();
+
+            Assert.Equal(rowCountBefore, rowCountAfter);
+            Assert.False(isObjectFound);
+        }
+
+
+        /// <summary>
         /// Test mis loob uue õpetaja, mille eesnimes on unikaalne id
         /// </summary>
         [Fact]
@@ -106,6 +172,46 @@ namespace KeelteKoolV2.SeleniumTesting
 
 
         /// <summary>
+        /// Test mis vajutab andmete vaates "Tagasi" ja kontrollib et jõuti õpetajate nimekirja
+        /// </summary>
+        [Fact]
+        [Order(5)]
+        public void Should_ReturnToIndex_WhenBackIsPressedInDetails()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableLecturerFirstName")).Text == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    row.FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"))
+                        .Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            IWebElement goBack = driver.FindElement(By.Id("DetailsBack_BTN"));
+            goBack.Click(); //vajutame tagasi
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            //kui lisamise nupp on olemas siis oleme nimekirjas tagasi
+            bool isIndexOpen = driver.FindElements(By.Id("IndexCreateNewLecturer_BTN")).Count > 0;
+            driver.Quit();
+            Assert.True(isObjectFound);
+            Assert.True(isIndexOpen);
+        }
+
+
+        /// <summary>
         /// Test mis muudab eelnevalt lisatud õpetaja andmeid
         /// </summary>
         [Fact]
@@ -171,6 +277,53 @@ namespace KeelteKoolV2.SeleniumTesting
             Assert.Equal("Kask", details_lastName);
             Assert.Equal("Saksa keele õpetaja", details_qualifications);
             Assert.NotEqual("Tamm", details_lastName);
+        }
+
+
+        /// <summary>
+        /// Test mis avab kustutamise vaate, vajutab "Tühista" ja kontrollib et õpetaja on alles
+        /// </summary>
+        [Fact]
+        [Order(7)]
+        public void Should_KeepLecturer_WhenDeleteIsCancelled()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableLecturerFirstName")).Text == thisRunGuid)
+                {
+                    row.FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDelete_BTN"))
+                        .Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            IWebElement cancelDelete = driver.FindElement(By.Id("DeleteCancel_BTN"));
+            cancelDelete.Click(); //vajutame tühista
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            bool isObjectFound = false;
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableLecturerFirstName")).Text == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    break;
+                }
+            }
+            driver.Quit();
+            Assert.True(isObjectFound);
         }
 
 
